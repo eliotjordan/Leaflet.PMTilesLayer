@@ -3,5 +3,24 @@
   "version": "1.0.0",
   "main": "index.js",
   "author": "Eliot Jordan",
-  "license": "MIT"
+  "license": "MIT",
+  "scripts": {
+    "build-iife": "esbuild src/index.js --outfile=dist/Leaflet.PMTilesLayer.js --target=es6 --bundle --format=iife",
+    "build-esm": "esbuild src/index.js --outfile=dist/Leaflet.PMTilesLayer.mjs --target=es6 --bundle --format=esm",
+    "build-cjs": "esbuild src/index.js --outfile=dist/Leaflet.PMTilesLayer.cjs --target=es6 --bundle --format=cjs",
+    "build": "npm run build-iife && npm run build-esm && npm run build-cjs",
+    "prepare": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "leaflet-vector-tile-layer": "^0.8.0",
+    "pmtiles": "^2.4.0"
+  },
+  "peerDependencies": {
+    "leaflet": "^1.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.15.12",
+    "esbuild-runner": "^2.2.2"
+  }
 }
