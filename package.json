@@ -8,7 +8,7 @@
     "build-iife": "esbuild src/index.js --outfile=dist/Leaflet.PMTilesLayer.js --target=es6 --bundle --format=iife",
     "build-esm": "esbuild src/index.js --outfile=dist/Leaflet.PMTilesLayer.mjs --target=es6 --bundle --format=esm",
     "build-cjs": "esbuild src/index.js --outfile=dist/Leaflet.PMTilesLayer.cjs --target=es6 --bundle --format=cjs",
-    "build": "npm run build-iife && npm run build-esm && npm run build-cjs",
+    "build": "npm install --no-package-lock && npm run build-iife && npm run build-esm && npm run build-cjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
