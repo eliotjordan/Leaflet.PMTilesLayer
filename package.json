@@ -1,0 +1,7 @@
+{
+  "name": "leaflet-pmtiles-layer",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Eliot Jordan",
+  "license": "MIT"
+}
