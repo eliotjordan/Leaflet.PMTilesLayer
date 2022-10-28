@@ -11,6 +11,7 @@ L.PMTilesLayer = L.VectorGrid.Protobuf.extend({
     L.VectorGrid.prototype.initialize.call(this, options);
     this.p.getHeader().then((h) => {
       this.header = h
+      this.maxZoom = h.maxZoom
     })
   },
 
@@ -25,16 +26,7 @@ L.PMTilesLayer = L.VectorGrid.Protobuf.extend({
         renderer._features = {};
       }
 
-      // this.controllers = this.controllers.filter((cont) => {
-      //   if (cont[0] != coords.z) {
-      //     cont[1].abort();
-      //     return false;
-      //   }
-      //   return true;
-      // });
-
       const controller = new AbortController();
-      // this.controllers.push([coords.z, controller]);
       const signal = controller.signal;
 
       var vectorTilePromise = this._getVectorTilePromise(coords, tileBounds, signal);
@@ -141,18 +133,12 @@ L.PMTilesLayer = L.VectorGrid.Protobuf.extend({
 
     _removeTile: function (key) {
         const tileZoom = key.split(':')[2]
-        if (tileZoom < (this.header.maxZoom)) {
-          const tile = this._tiles[key];
-          if (!tile) { return; }
+        const currentZoom = this._map.getZoom()
 
-          L.DomUtil.remove(tile.el);
+        // TODO: Document when a tile should be removed.
+        if (!((currentZoom > this.maxZoom) && (tileZoom >= this.maxZoom))){
 
-          delete this._tiles[key];
-
-          this.fire('tileunload', {
-            tile: tile.el,
-            coords: this._keyToTileCoords(key)
-          });
+          L.VectorGrid.prototype._removeTile.call(this, key);
         }
     },
 
