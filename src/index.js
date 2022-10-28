@@ -5,6 +5,13 @@ import * as pmtiles from "pmtiles"
 
 L.PMTilesLayer = L.VectorGrid.Protobuf.extend({
 
+  initialize: function(url, options) {
+    this._url = url;
+    this.p = new pmtiles.PMTiles("https://pul-tile-images.s3.amazonaws.com/pmtiles/parcels.pmtiles")
+    this.controllers = [];
+    L.VectorGrid.prototype.initialize.call(this, options);
+  },
+
   createTile: function(coords, done) {
       var storeFeatures = this.options.getFeatureId;
       var tileSize = this.getTileSize();
@@ -136,12 +143,8 @@ L.PMTilesLayer = L.VectorGrid.Protobuf.extend({
           return Promise.resolve({layers:[]});
         }
 
-        // debugger;
-        const p = new pmtiles.PMTiles("https://pul-tile-images.s3.amazonaws.com/pmtiles/parcels.pmtiles")
-
-        return p.getZxy(coords.z, coords.x, coords.y).then(function(arr){
+        return this.p.getZxy(coords.z, coords.x, coords.y).then(function(arr){
           if (arr) {
-            var reader = new FileReader();
             return new Promise(function(resolve){
               var pbf = new Pbf( arr.data );
               return resolve(new VectorTile( pbf ));
