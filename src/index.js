@@ -4,12 +4,14 @@ import "leaflet.vectorgrid"
 import * as pmtiles from "pmtiles"
 
 L.PMTilesLayer = L.VectorGrid.Protobuf.extend({
-
   initialize: function(url, options) {
     this._url = url;
     this.p = new pmtiles.PMTiles("https://pul-tile-images.s3.amazonaws.com/pmtiles/parcels.pmtiles")
     this.controllers = [];
     L.VectorGrid.prototype.initialize.call(this, options);
+    this.p.getHeader().then((h) => {
+      this.header = h
+    })
   },
 
   createTile: function(coords, done) {
@@ -17,12 +19,25 @@ L.PMTilesLayer = L.VectorGrid.Protobuf.extend({
       var tileSize = this.getTileSize();
       var renderer = this.options.rendererFactory(coords, tileSize, this.options);
       var tileBounds = this._tileCoordsToBounds(coords);
-      var vectorTilePromise = this._getVectorTilePromise(coords, tileBounds);
 
       if (storeFeatures) {
         this._vectorTiles[this._tileCoordsToKey(coords)] = renderer;
         renderer._features = {};
       }
+
+      // this.controllers = this.controllers.filter((cont) => {
+      //   if (cont[0] != coords.z) {
+      //     cont[1].abort();
+      //     return false;
+      //   }
+      //   return true;
+      // });
+
+      const controller = new AbortController();
+      // this.controllers.push([coords.z, controller]);
+      const signal = controller.signal;
+
+      var vectorTilePromise = this._getVectorTilePromise(coords, tileBounds, signal);
 
       vectorTilePromise.then( function renderTile(vectorTile) {
         if (vectorTile.layers && vectorTile.layers.length !== 0) {
@@ -124,7 +139,24 @@ L.PMTilesLayer = L.VectorGrid.Protobuf.extend({
 
     },
 
-    _getVectorTilePromise: function(coords, tileBounds) {
+    _removeTile: function (key) {
+        const tileZoom = key.split(':')[2]
+        if (tileZoom < (this.header.maxZoom)) {
+          const tile = this._tiles[key];
+          if (!tile) { return; }
+
+          L.DomUtil.remove(tile.el);
+
+          delete this._tiles[key];
+
+          this.fire('tileunload', {
+            tile: tile.el,
+            coords: this._keyToTileCoords(key)
+          });
+        }
+    },
+
+    _getVectorTilePromise: function(coords, tileBounds, signal) {
         var data = {
           s: this._getSubdomain(coords),
           x: coords.x,
@@ -143,7 +175,7 @@ L.PMTilesLayer = L.VectorGrid.Protobuf.extend({
           return Promise.resolve({layers:[]});
         }
 
-        return this.p.getZxy(coords.z, coords.x, coords.y).then(function(arr){
+        return this.p.getZxy(coords.z, coords.x, coords.y, signal).then(function(arr){
           if (arr) {
             return new Promise(function(resolve){
               var pbf = new Pbf( arr.data );
