@@ -30,39 +30,57 @@ L.PMTilesLayer = L.VectorGrid.Protobuf.extend({
 
     // code for loading tiles with higher zoom levels
     if (coords.z > this.maxZoom) {
+      // Generate zxy tile coordinates that correspond to the tile in the
+      // tilset's max zoomed level that contains the originally requested tile.
       const pixelPoint = this._map.project(tileBounds.getCenter(), this.maxZoom).floor()
-      const newCoords = pixelPoint.unscaleBy(tileSize).floor()
+      const maxCoords = pixelPoint.unscaleBy(tileSize).floor()
+      maxCoords.z = this.maxZoom
+      const newTileBounds = this._tileCoordsToBounds(maxCoords)
 
-      newCoords.z = this.maxZoom
-      const newTileBounds = this._tileCoordsToBounds(newCoords)
-
-      vectorTilePromise = this._getVectorTilePromise(newCoords, newTileBounds, signal).then(function renderTile (vectorTile) {
+      // Get this max zoom level vector tile and then process to extract
+      // features for the requested tile
+      vectorTilePromise = this._getVectorTilePromise(maxCoords, newTileBounds, signal).then(function renderTile (vectorTile) {
         if (vectorTile.layers && vectorTile.layers.length !== 0) {
           for (const layerName in vectorTile.layers) {
             const layer = vectorTile.layers[layerName]
-            const deltaZoom = Math.abs(coords.z - newCoords.z)
-            const scale = 1 / (Math.pow(2, deltaZoom))
-            const scaledCoords = coords.scaleBy({ x: scale, y: scale })
 
-            const x = (scaledCoords.x % newCoords.x) * layer.extent // extent = 4096 according to spec
-            const y = (scaledCoords.y % newCoords.y) * layer.extent
+            // Use diffenece in zoom levels between the requested tile and
+            // the parent max zoomed tile to generate a scale value.
+            const deltaZoom = Math.abs(coords.z - maxCoords.z)
+            const scale = 1 / (Math.pow(2, deltaZoom))
+
+            // The scale value is used to calculate the x and y values of the
+            // original tile reqest in the coordinate unit space of the max zoom
+            // level parent tile. The default tile size is 4096. See:
+            // https://github.com/mapbox/vector-tile-spec/tree/master/2.1#41-layers
+            const scaledCoords = coords.scaleBy({ x: scale, y: scale })
+            const x = (scaledCoords.x % maxCoords.x) * layer.extent // 4096
+            const y = (scaledCoords.y % maxCoords.y) * layer.extent
+
+            // Use these X and Y to generate a bounds object for the requested
+            // tile in the max zoom level tile coordinate space.
             const segLen = layer.extent * scale
             const n = y
             const w = x
             const s = n + segLen
             const e = w + segLen
             const bounds = L.bounds(L.point(w, n), L.point(e, s))
+
             for (let i = 0; i < layer.features.length; i++) {
               const geom = []
               const feat = layer.features[i]
               const featGeom = feat.loadGeometry()
               featGeom.forEach((x) => {
+                // Map each point in the feature to a Leaflet point object
                 const poly = x.map(x => L.point(x))
-                const clippedGeom = L.PolyUtil.clipPolygon(poly, bounds).filter(n => n)
+
+                // TODO: implement for point and line
+                // Polygon: clip the feature geometry by requested tile bounds
+                const clippedGeom = L.PolyUtil.clipPolygon(poly, bounds)
                 if (clippedGeom.length > 0) {
-                  // Transform geometry to fit larger original tile
-                  // Translate x and y to origin of tile. e.g (x - bounds.min.x)
-                  // Unscale so the geometry fits the original tile space
+                  // Transform geometry to fit larger requested tile coordinate space.
+                  // Translate x and y to origin of the tile. (x - bounds.min.x).
+                  // Unscale so the geometry fits the original tile coordinate space.
                   clippedGeom.map(function (element) {
                     element.x = (element.x - bounds.min.x) / scale
                     element.y = (element.y - bounds.min.y) / scale
@@ -143,6 +161,7 @@ L.PMTilesLayer = L.VectorGrid.Protobuf.extend({
   },
 
   _getVectorTilePromise: function (coords, tileBounds, signal) {
+    // Get vector tile from pmtiles file
     return this.pmt.getZxy(coords.z, coords.x, coords.y, signal).then(function (arr) {
       if (arr) {
         return new Promise(function (resolve) {
@@ -150,21 +169,21 @@ L.PMTilesLayer = L.VectorGrid.Protobuf.extend({
           return resolve(new VectorTile(pbf))
         })
       }
-    }).then(function (json) {
-      if (json) {
+    }).then(function (vectorTile) {
+      if (vectorTile) {
         // Normalize feature getters into actual instanced features
-        for (const layerName in json.layers) {
+        for (const layerName in vectorTile.layers) {
           const feats = []
 
-          for (let i = 0; i < json.layers[layerName].length; i++) {
-            const feat = json.layers[layerName].feature(i)
+          for (let i = 0; i < vectorTile.layers[layerName].length; i++) {
+            const feat = vectorTile.layers[layerName].feature(i)
             feat.geometry = feat.loadGeometry()
             feats.push(feat)
           }
 
-          json.layers[layerName].features = feats
+          vectorTile.layers[layerName].features = feats
         }
-        return json
+        return vectorTile
       } else {
         return { }
       }
