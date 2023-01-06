@@ -22,5 +22,17 @@ describe('Leaflet.PMTilesLayer', () => {
         .find('g path')
         .should('have.length', 369)
     })
+
+
+    it('renders tiles when initial zoom level beyond the max zoom of the pmtiles dataset', () => {
+      cy.visit('cypress/pages/polygon-zoom.html')
+
+      cy.wait(4000)
+      cy.get('.leaflet-control-zoom-in').click()
+
+      cy.get('.leaflet-tile-container svg').first()
+        .find('g path')
+        .should('have.length', 369)
+    })
   })
 })
