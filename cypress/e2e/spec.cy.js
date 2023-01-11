@@ -19,8 +19,8 @@ describe('Leaflet.PMTilesLayer', () => {
       cy.get('.leaflet-control-zoom-in').click()
 
       cy.get('.leaflet-tile-container svg').first()
-        .find('g path')
-        .should('have.length', 369)
+        .find('g path[d="M0 0"]')
+        .should('have.length', 319)
     })
 
 
@@ -28,11 +28,10 @@ describe('Leaflet.PMTilesLayer', () => {
       cy.visit('cypress/pages/polygon-zoom.html')
 
       cy.wait(4000)
-      cy.get('.leaflet-control-zoom-in').click()
 
       cy.get('.leaflet-tile-container svg').first()
-        .find('g path')
-        .should('have.length', 369)
+        .find('g path[d="M0 0"]')
+        .should('have.length', 366)
     })
   })
 })

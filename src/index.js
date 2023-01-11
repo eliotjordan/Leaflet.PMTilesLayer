@@ -8,10 +8,17 @@ import * as pmtiles from 'pmtiles'
 L.PMTilesLayer = L.VectorGrid.Protobuf.extend({
   initialize: function (url, options) {
     this.pmt = new pmtiles.PMTiles(url)
+    L.VectorGrid.prototype.initialize.call(this, options)
+  },
+
+  // Override _layerAdd so that layer is not added to map until the async
+  // getHeader function returns and layer maxZoom is set. Otherwise initial
+  // tiles may not load correctly.
+  _layerAdd: function (e) {
     this.pmt.getHeader().then((h) => {
       this.maxZoom = h.maxZoom
+      L.VectorGrid.prototype._layerAdd.call(this, e)
     })
-    L.VectorGrid.prototype.initialize.call(this, options)
   },
 
   createTile: function (coords, done) {
@@ -28,7 +35,6 @@ L.PMTilesLayer = L.VectorGrid.Protobuf.extend({
       renderer._features = {}
     }
 
-    // code for loading tiles with higher zoom levels
     if (coords.z > this.maxZoom) {
       // Generate zxy tile coordinates that correspond to the tile in the
       // tilset's max zoomed level that contains the originally requested tile.

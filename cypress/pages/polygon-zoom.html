@@ -22,9 +22,8 @@
         style: { weight: 1 }
       };
 
-      const pmTilesLayer =  L.pmtilesLayer(pmtilesurl, vectortileoptions);
-
-      map.setView([29.979678, -90.078965], 10)
+      const pmTilesLayer =  L.pmtilesLayer(pmtilesurl, vectortileoptions)
+      map.setView([29.979678, -90.078965], 15)
       pmTilesLayer.addTo(map)
     </script>
   </body>
