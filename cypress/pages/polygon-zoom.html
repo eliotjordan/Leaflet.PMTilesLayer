@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <title>VectorGrid.Protobuf example</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
+
+  </head>
+  <body style='margin:0'>
+
+    <div id="map" style="width: 800px; height: 800px; background: white"></div>
+    <script type="text/javascript"  src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js"></script>
+    <script type="text/javascript" src="../../dist/Leaflet.PMTilesLayer.js"></script>
+    <script>
+      var map = L.map('map', { zoomAnimation: false });
+      var pmtilesurl = "../fixtures/zipcodes.pmtiles";
+
+      var vectortileoptions = {
+        getFeatureId: true,
+        style: { weight: 1 }
+      };
+
+      const pmTilesLayer =  L.pmtilesLayer(pmtilesurl, vectortileoptions)
+      map.setView([29.979678, -90.078965], 15)
+      pmTilesLayer.addTo(map)
+    </script>
+  </body>
+</html>
