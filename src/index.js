@@ -77,22 +77,41 @@ L.PMTilesLayer = L.VectorGrid.Protobuf.extend({
               const feat = layer.features[i]
               const featGeom = feat.loadGeometry()
               featGeom.forEach((x) => {
-                // Map each point in the feature to a Leaflet point object
-                const poly = x.map(x => L.point(x))
+                switch (feat.type) {
+                  // Point
+                  case 1: {
+                    // filter by requested tile bounds
+                    if (bounds.contains(x)) {
+                      // Transform geometry to fit larger requested tile coordinate space.
+                      const point = x[0]
+                      point.x = (point.x - bounds.min.x) / scale
+                      point.y = (point.y - bounds.min.y) / scale
+                      geom.push(point)
+                    }
+                    break
+                  }
 
-                // TODO: implement for point and line
-                // Polygon: clip the feature geometry by requested tile bounds
-                const clippedGeom = L.PolyUtil.clipPolygon(poly, bounds)
-                if (clippedGeom.length > 0) {
-                  // Transform geometry to fit larger requested tile coordinate space.
-                  // Translate x and y to origin of the tile. (x - bounds.min.x).
-                  // Unscale so the geometry fits the original tile coordinate space.
-                  clippedGeom.map(function (element) {
-                    element.x = (element.x - bounds.min.x) / scale
-                    element.y = (element.y - bounds.min.y) / scale
-                    return element
-                  })
-                  geom.push(clippedGeom)
+                  // Polygon
+                  case 3: {
+                    // Map each point in the feature to a Leaflet point object
+                    const poly = x.map(x => L.point(x))
+
+                    // clip the feature geometry by requested tile bounds
+                    const clippedGeom = L.PolyUtil.clipPolygon(poly, bounds)
+                    if (clippedGeom.length > 0) {
+                      // Transform geometry to fit larger requested tile coordinate space.
+                      // Translate x and y to origin of the tile. (x - bounds.min.x).
+                      // Unscale so the geometry fits the original tile coordinate space.
+                      clippedGeom.map(function (element) {
+                        element.x = (element.x - bounds.min.x) / scale
+                        element.y = (element.y - bounds.min.y) / scale
+                        return element
+                      })
+                      geom.push(clippedGeom)
+                    }
+
+                    break
+                  }
                 }
               })
 
@@ -123,6 +142,7 @@ L.PMTilesLayer = L.VectorGrid.Protobuf.extend({
 
           for (let i = 0; i < layer.features.length; i++) {
             const feat = layer.features[i]
+            if (feat.geometry.length === 0) { continue }
 
             if (this.options.filter instanceof Function &&
                 !this.options.filter(feat.properties, coords.z)) {
