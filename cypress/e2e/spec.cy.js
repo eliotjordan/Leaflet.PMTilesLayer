@@ -82,4 +82,26 @@ describe('Leaflet.PMTilesLayer', () => {
         .should('have.length', 35)
     })
   })
+  describe('use leaflet autoscaling', () => {
+    it('autoscales after maxZoomNative is set', () => {
+      cy.visit('cypress/pages/polygon-leaflet-autoscaling.html')
+
+      cy.wait(1000)
+
+      cy.get('.leaflet-tile-container svg').first()
+        .find('g')
+        .should('have.length', 1)
+    })
+  })
+  describe('disable autoscaling', () => {
+    it('does not autoscale and returns blank tiles', () => {
+      cy.visit('cypress/pages/polygon-no-autoscaling.html')
+
+      cy.wait(1000)
+
+      cy.get('.leaflet-tile-container svg').first()
+        .find('g path')
+        .should('have.length', 0)
+    })
+  })
 })
