@@ -17,6 +17,11 @@ L.PMTilesLayer = L.VectorGrid.Protobuf.extend({
   _layerAdd: function (e) {
     this.pmt.getHeader().then((h) => {
       this.maxZoom = h.maxZoom
+
+      // Use leaflet maxNativeZoom autoscaling if option set
+      if (this.options.autoScale === 'leaflet') {
+        this.options.maxNativeZoom = h.maxZoom
+      }
       L.VectorGrid.prototype._layerAdd.call(this, e)
     })
   },
@@ -35,7 +40,7 @@ L.PMTilesLayer = L.VectorGrid.Protobuf.extend({
       renderer._features = {}
     }
 
-    if (coords.z > this.maxZoom) {
+    if ((coords.z > this.maxZoom) && this.options.autoScale !== false) {
       // Generate zxy tile coordinates that correspond to the tile in the
       // tilset's max zoomed level that contains the originally requested tile.
       const pixelPoint = this._map.project(tileBounds.getCenter(), this.maxZoom).floor()
@@ -50,7 +55,7 @@ L.PMTilesLayer = L.VectorGrid.Protobuf.extend({
           for (const layerName in vectorTile.layers) {
             const layer = vectorTile.layers[layerName]
 
-            // Use diffenece in zoom levels between the requested tile and
+            // Use difference in zoom levels between the requested tile and
             // the parent max zoomed tile to generate a scale value.
             const deltaZoom = Math.abs(coords.z - maxCoords.z)
             const scale = 1 / (Math.pow(2, deltaZoom))
