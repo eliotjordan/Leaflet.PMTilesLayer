@@ -76,6 +76,7 @@ L.PMTilesLayer = L.VectorGrid.Protobuf.extend({
               const geom = []
               const feat = layer.features[i]
               const featGeom = feat.loadGeometry()
+
               featGeom.forEach((x) => {
                 switch (feat.type) {
                   // Point
@@ -90,26 +91,23 @@ L.PMTilesLayer = L.VectorGrid.Protobuf.extend({
                     }
                     break
                   }
-
-                  // Polygon
-                  case 3: {
+                  // Line(2) or Polygon (3)
+                  default: {
                     // Map each point in the feature to a Leaflet point object
                     const poly = x.map(x => L.point(x))
 
                     // clip the feature geometry by requested tile bounds
                     const clippedGeom = L.PolyUtil.clipPolygon(poly, bounds)
-                    if (clippedGeom.length > 0) {
-                      // Transform geometry to fit larger requested tile coordinate space.
-                      // Translate x and y to origin of the tile. (x - bounds.min.x).
-                      // Unscale so the geometry fits the original tile coordinate space.
-                      clippedGeom.map(function (element) {
-                        element.x = (element.x - bounds.min.x) / scale
-                        element.y = (element.y - bounds.min.y) / scale
-                        return element
-                      })
-                      geom.push(clippedGeom)
-                    }
-
+                    if (clippedGeom.length === 0) { break }
+                    // Transform geometry to fit larger requested tile coordinate space.
+                    // Translate x and y to origin of the tile. (x - bounds.min.x).
+                    // Unscale so the geometry fits the original tile coordinate space.
+                    clippedGeom.map(function (element) {
+                      element.x = (element.x - bounds.min.x) / scale
+                      element.y = (element.y - bounds.min.y) / scale
+                      return element
+                    })
+                    geom.push(clippedGeom)
                     break
                   }
                 }
