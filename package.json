@@ -1,9 +1,13 @@
 {
   "name": "leaflet-pmtiles-layer",
-  "version": "0.0.1",
-  "main": "index.js",
+  "version": "0.0.2",
+  "description": "A Leaflet Plugin for PMTiles formatted vector data",
+  "main": "dist/Leaflet.PMTilesLayer.js",
   "author": "Eliot Jordan",
   "license": "MIT",
+  "files": [
+    "dist/Leaflet.PMTilesLayer.mjs"
+  ],
   "scripts": {
     "build-iife": "esbuild src/index.js --outfile=dist/Leaflet.PMTilesLayer.js --target=es6 --bundle --format=iife",
     "build-esm": "esbuild src/index.js --outfile=dist/Leaflet.PMTilesLayer.mjs --target=es6 --bundle --format=esm",
