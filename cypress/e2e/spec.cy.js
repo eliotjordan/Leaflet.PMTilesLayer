@@ -15,7 +15,6 @@ describe('Leaflet.PMTilesLayer', () => {
     it('renders tiles beyond the max zoom of the pmtiles dataset', () => {
       cy.visit('cypress/pages/polygon.html')
 
-      cy.wait(1000)
       cy.get('.leaflet-control-zoom-in').click()
 
       cy.get('.leaflet-tile-container svg').first()
@@ -26,8 +25,6 @@ describe('Leaflet.PMTilesLayer', () => {
 
     it('renders tiles when initial zoom level beyond the max zoom of the pmtiles dataset', () => {
       cy.visit('cypress/pages/polygon-zoom.html')
-
-      cy.wait(1000)
 
       cy.get('.leaflet-tile-container svg').first()
         .find('g path')
@@ -51,8 +48,6 @@ describe('Leaflet.PMTilesLayer', () => {
     it('renders tiles when initial zoom level beyond the max zoom of the pmtiles dataset', () => {
       cy.visit('cypress/pages/point-zoom.html')
 
-      cy.wait(1000)
-
       cy.get('.leaflet-tile-container svg').first()
         .find('g path')
         .should('have.length', 2)
@@ -75,8 +70,6 @@ describe('Leaflet.PMTilesLayer', () => {
     it('renders tiles when initial zoom level beyond the max zoom of the pmtiles dataset', () => {
       cy.visit('cypress/pages/line-zoom.html')
 
-      cy.wait(1000)
-
       cy.get('.leaflet-tile-container svg').first()
         .find('g path')
         .should('have.length', 37)
@@ -86,8 +79,6 @@ describe('Leaflet.PMTilesLayer', () => {
     it('autoscales after maxZoomNative is set', () => {
       cy.visit('cypress/pages/polygon-leaflet-autoscaling.html')
 
-      cy.wait(1000)
-
       cy.get('.leaflet-tile-container svg').first()
         .find('g')
         .should('have.length', 1)
@@ -96,8 +87,6 @@ describe('Leaflet.PMTilesLayer', () => {
   describe('disable autoscaling', () => {
     it('does not autoscale and returns blank tiles', () => {
       cy.visit('cypress/pages/polygon-no-autoscaling.html')
-
-      cy.wait(1000)
 
       cy.get('.leaflet-tile-container svg').first()
         .find('g path')
