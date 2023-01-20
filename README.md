@@ -2,6 +2,8 @@
 
 A Leaflet Plugin for PMTiles formatted vector data. Built on [Leaflet.VectorGrid](https://github.com/Leaflet/Leaflet.VectorGrid) and the PMTiles [javascript package](https://github.com/protomaps/PMTiles/tree/main/js).
 
+[![npm](https://shields.io/npm/v/leaflet-pmtiles-layer)](https://www.npmjs.com/package/leaflet-pmtiles-layer) [![CircleCI](https://dl.circleci.com/status-badge/img/gh/eliotjordan/Leaflet.PMTilesLayer/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/eliotjordan/Leaflet.PMTilesLayer/tree/main)
+
 ## Demos
 
 - Points
