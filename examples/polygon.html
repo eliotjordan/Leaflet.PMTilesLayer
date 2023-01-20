@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Leaflet.PMTilesLayer Polygon Example</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
+  </head>
+  <body style='margin:0'>
+    <div id="map" style="width: 100vw; height: 100vh; background: white"></div>
+    <script type="text/javascript"  src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-pmtiles-layer@0.0.3/dist/Leaflet.PMTilesLayer.js"></script>
+
+    <script>
+      const map = L.map('map')
+      map.setView([29.979678, -90.078965], 10)
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+      }).addTo(map);
+
+      const vectortileoptions = {
+        rendererFactory: L.canvas.tile,
+        style: {
+          weight:  2,
+          fill: true
+        },
+        interactive: true
+      }
+      const pmtilesurl = "https://eliotjordan.github.io/Leaflet.PMTilesLayer/cypress/fixtures/zipcodes.pmtiles"
+      const pmTilesLayer =  L.pmtilesLayer(pmtilesurl, vectortileoptions)
+        .on('click', function(e) {
+          L.popup()
+            .setContent(e.layer.properties.ZCTA)
+            .setLatLng(e.latlng)
+            .openOn(map)
+          L.DomEvent.stop(e)
+        })
+
+      pmTilesLayer.addTo(map)
+    </script>
+  </body>
+</html>
