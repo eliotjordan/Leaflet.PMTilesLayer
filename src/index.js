@@ -79,47 +79,50 @@ L.PMTilesLayer = L.VectorGrid.Protobuf.extend({
 
             for (let i = 0; i < layer.features.length; i++) {
               const geom = []
-              const feat = layer.features[i]
-              const featGeom = feat.loadGeometry()
+              const feature = layer.features[i]
+              const featureGeometries = feature.loadGeometry()
 
-              featGeom.forEach((x) => {
-                switch (feat.type) {
-                  // Point
-                  case 1: {
+              switch (feature.type) {
+                // Point
+                case 1: {
+                  featureGeometries.forEach((featureGeom) => {
                     // filter by requested tile bounds
-                    if (bounds.contains(x)) {
+                    if (bounds.contains(featureGeom)) {
+                      const point = featureGeom[0]
                       // Transform geometry to fit larger requested tile coordinate space.
-                      const point = x[0]
                       point.x = (point.x - bounds.min.x) / scale
                       point.y = (point.y - bounds.min.y) / scale
                       geom.push(point)
                     }
-                    break
-                  }
-                  // Line(2) or Polygon (3)
-                  default: {
-                    // Map each point in the feature to a Leaflet point object
-                    const poly = x.map(x => L.point(x))
-
-                    // clip the feature geometry by requested tile bounds
-                    const clippedGeom = L.PolyUtil.clipPolygon(poly, bounds)
-                    if (clippedGeom.length === 0) { break }
+                  })
+                  break
+                }
+                // Line(2) and Polygon (3)
+                default: {
+                  featureGeometries.filter((featureGeom) => {
+                    const points = featureGeom.map((p) => { return L.point(p.x, p.y) })
+                    return bounds.overlaps(L.bounds(points))
+                  })
+                  featureGeometries.forEach((featureGeom) => {
                     // Transform geometry to fit larger requested tile coordinate space.
                     // Translate x and y to origin of the tile. (x - bounds.min.x).
                     // Unscale so the geometry fits the original tile coordinate space.
-                    clippedGeom.map(function (element) {
-                      element.x = (element.x - bounds.min.x) / scale
-                      element.y = (element.y - bounds.min.y) / scale
-                      return element
+                    featureGeom.map(function (point) {
+                      point.x = (point.x - bounds.min.x) / scale
+                      point.y = (point.y - bounds.min.y) / scale
+                      return point
                     })
-                    geom.push(clippedGeom)
-                    break
-                  }
+                    geom.push(featureGeom)
+                  })
+                  break
                 }
-              })
+              }
 
               layer.features[i].geometry = geom
             }
+            layer.features = layer.features.filter((feat) => {
+              return feat.geometry.length > 0
+            })
           }
         }
         return new Promise(function (resolve) {
