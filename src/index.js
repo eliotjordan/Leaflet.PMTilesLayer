@@ -8,6 +8,7 @@ import * as pmtiles from 'pmtiles'
 L.PMTilesLayer = L.VectorGrid.Protobuf.extend({
   initialize: function (url, options) {
     this.pmt = new pmtiles.PMTiles(url)
+    this.vecCache = {}
     L.VectorGrid.prototype.initialize.call(this, options)
   },
 
@@ -194,14 +195,25 @@ L.PMTilesLayer = L.VectorGrid.Protobuf.extend({
 
   _getVectorTilePromise: function (coords, tileBounds, signal) {
     // Get vector tile from pmtiles file
-    return this.pmt.getZxy(coords.z, coords.x, coords.y, signal).then(function (arr) {
+    const key = `${coords.z}${coords.x}${coords.y}`
+
+    let pmtPromise
+    if (this.vecCache[key]) {
+      pmtPromise = new Promise(function (resolve) {
+        return resolve(this.vecCache[key])
+      }.bind(this))
+    } else {
+      pmtPromise = this.pmt.getZxy(coords.z, coords.x, coords.y, signal)
+    }
+    return pmtPromise.then(function (arr) {
       if (arr) {
+        this.vecCache[key] = arr
         return new Promise(function (resolve) {
           const pbf = new Pbf(arr.data)
           return resolve(new VectorTile(pbf))
         })
       }
-    }).then(function (vectorTile) {
+    }.bind(this)).then(function (vectorTile) {
       if (vectorTile) {
         // Normalize feature getters into actual instanced features
         for (const layerName in vectorTile.layers) {
