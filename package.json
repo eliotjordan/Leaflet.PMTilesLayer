@@ -1,6 +1,6 @@
 {
   "name": "leaflet-pmtiles-layer",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A Leaflet Plugin for PMTiles formatted vector data",
   "main": "dist/Leaflet.PMTilesLayer.js",
   "author": "Eliot Jordan",
