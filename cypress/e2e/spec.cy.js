@@ -20,7 +20,7 @@ describe('Leaflet.PMTilesLayer', () => {
 
       cy.get('.leaflet-tile-container svg').first()
         .find('g path')
-        .should('have.length', 50)
+        .should('have.length', 369)
     })
 
 
@@ -31,7 +31,7 @@ describe('Leaflet.PMTilesLayer', () => {
 
       cy.get('.leaflet-tile-container svg').first()
         .find('g path')
-        .should('have.length', 3)
+        .should('have.length', 369)
     })
   })
 
@@ -79,7 +79,7 @@ describe('Leaflet.PMTilesLayer', () => {
 
       cy.get('.leaflet-tile-container svg').first()
         .find('g path')
-        .should('have.length', 35)
+        .should('have.length', 37)
     })
   })
   describe('use leaflet autoscaling', () => {

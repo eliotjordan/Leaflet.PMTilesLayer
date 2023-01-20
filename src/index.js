@@ -80,12 +80,12 @@ L.PMTilesLayer = L.VectorGrid.Protobuf.extend({
             for (let i = 0; i < layer.features.length; i++) {
               const geom = []
               const feat = layer.features[i]
-              const featGeom = feat.loadGeometry()
+              let featGeom = feat.loadGeometry()
 
-              featGeom.forEach((x) => {
-                switch (feat.type) {
-                  // Point
-                  case 1: {
+              switch (feat.type) {
+                // Point
+                case 1: {
+                  featGeom.forEach((x) => {
                     // filter by requested tile bounds
                     if (bounds.contains(x)) {
                       // Transform geometry to fit larger requested tile coordinate space.
@@ -94,32 +94,38 @@ L.PMTilesLayer = L.VectorGrid.Protobuf.extend({
                       point.y = (point.y - bounds.min.y) / scale
                       geom.push(point)
                     }
-                    break
-                  }
-                  // Line(2) or Polygon (3)
-                  default: {
-                    // Map each point in the feature to a Leaflet point object
-                    const poly = x.map(x => L.point(x))
-
-                    // clip the feature geometry by requested tile bounds
-                    const clippedGeom = L.PolyUtil.clipPolygon(poly, bounds)
-                    if (clippedGeom.length === 0) { break }
+                  })
+                  break
+                }
+                // Line(2) and Polygon (3)
+                default: {
+                  featGeom.filter((geom) => {
+                    const poly = geom.map((p) => { return L.point(p.x, p.y) })
+                    const polyBounds = L.bounds(poly)
+                    return bounds.overlaps(polyBounds)
+                  })
+                  featGeom.forEach((x) => {
                     // Transform geometry to fit larger requested tile coordinate space.
                     // Translate x and y to origin of the tile. (x - bounds.min.x).
                     // Unscale so the geometry fits the original tile coordinate space.
-                    clippedGeom.map(function (element) {
+                    x.map(function (element) {
                       element.x = (element.x - bounds.min.x) / scale
                       element.y = (element.y - bounds.min.y) / scale
                       return element
                     })
-                    geom.push(clippedGeom)
-                    break
-                  }
+
+                    geom.push(x)
+                  })
+
+                  break
                 }
-              })
+              }
 
               layer.features[i].geometry = geom
             }
+            layer.features = layer.features.filter((feature) => {
+              return feature.geometry.length > 0
+            })
           }
         }
         return new Promise(function (resolve) {
