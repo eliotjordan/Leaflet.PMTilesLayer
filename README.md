@@ -7,7 +7,7 @@ A Leaflet Plugin for PMTiles formatted vector data. Built on [Leaflet.VectorGrid
 ## Demos
 
 - Points
-- Lines
+- [Lines](https://eliotjordan.github.io/Leaflet.PMTilesLayer/examples/line.html)
 - [Polygons](https://eliotjordan.github.io/Leaflet.PMTilesLayer/examples/polygon.html)
 
 ## Installation and setup
